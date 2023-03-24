@@ -10,8 +10,9 @@ zap:
   encode-level: 'LowercaseColorLevelEncoder'
   stacktrace-key: 'stacktrace'
   log-in-console: true
-  timeFormat: '2006/01/02 - 15:04:05.000'
+  time-format: '2006/01/02 - 15:04:05.000'
   max-size:  10     #在进行切割之前，日志文件的最大大小（以MB为单位）
   max-backups: 200   #保留旧文件的最大个数
   max-age:    30    #保留旧文件的最大天数
   compress:  true     #是否压缩/归档旧文件
+  skip-paths: ""  #请求时不记录日志的位置

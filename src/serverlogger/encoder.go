@@ -23,6 +23,7 @@ func getEncoderConfig() (c zapcore.EncoderConfig) {
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.FullCallerEncoder,
 	}
+	c.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
 	switch config.GetConfig().Zap.EncodeLevel {
 	case "LowercaseLevelEncoder": // 小写编码器(默认)
