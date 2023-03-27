@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Path     = "./config/config.yaml"
+	Path     = "../config/config.yaml"
 	FileType = "yaml"
 )
 
