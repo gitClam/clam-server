@@ -5,7 +5,7 @@ zap:
   level: 'info'
   format: 'console'
   prefix: '[clam-server]'
-  director: 'log'
+  director: '../log'
   show-line: true
   encode-level: 'LowercaseColorLevelEncoder'
   stacktrace-key: 'stacktrace'
