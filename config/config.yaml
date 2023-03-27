@@ -16,3 +16,8 @@ zap:
   max-age:    30    #保留旧文件的最大天数
   compress:  true     #是否压缩/归档旧文件
   skip-paths: ""  #请求时不记录日志的位置
+
+jwt:
+  jwt-timeout: 6048000 #second
+  secret: xxx-Secret #加密方式
+  default-context-key: "clam-house"

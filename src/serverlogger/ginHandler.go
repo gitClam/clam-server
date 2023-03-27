@@ -29,7 +29,7 @@ var defaultLogFormatter = func(param gin.LogFormatterParams) string {
 	)
 }
 
-func GinLogger() gin.HandlerFunc {
+func LoggerHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()

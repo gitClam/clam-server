@@ -3,6 +3,7 @@ package config
 type config struct {
 	System system `mapstructure:"system" yaml:"system"`
 	Zap    zap    `mapstructure:"zap" yaml:"zap"`
+	Jwt    jwt    `mapstructure:"jwt" yaml:"jwt"`
 }
 
 type system struct {
@@ -24,4 +25,10 @@ type zap struct {
 	MaxAge        int      `mapstructure:"max-age" yaml:"max-age"`               // 保留旧文件的最大天数
 	Compress      bool     `mapstructure:"compress" yaml:"compress"`             // 是否压缩/归档旧文件
 	SkipPaths     []string `mapstructure:"skip-paths" yaml:"skip-paths"`         // 请求时不记录日志的位置
+}
+
+type jwt struct {
+	JwtTimeout        int    `mapstructure:"jwt-timeout" yaml:"jwt-timeout"` // second
+	Secret            string `mapstructure:"secret" yaml:"secret"`           // 加密方式
+	DefaultContextKey string `mapstructure:"default-context-key" yaml:"default-context-key"`
 }

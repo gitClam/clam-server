@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	Path     = "../config/config.yaml"
-	FileType = "yaml"
+	path     = "../config/config.yaml"
+	fileType = "yaml"
 )
 
 var v *viper.Viper
@@ -22,8 +22,8 @@ func GetConfig() *config {
 func Init() {
 	log.Println("init config starting ...")
 	v = viper.New()
-	v.SetConfigFile(Path)
-	v.SetConfigType(FileType)
+	v.SetConfigFile(path)
+	v.SetConfigType(fileType)
 	err := v.ReadInConfig()
 	if err != nil {
 		log.Printf("load config file err : %s\n", err)
