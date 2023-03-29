@@ -125,4 +125,5 @@ func getFileRes(c *gin.Context) {
 		return
 	}
 	c.File(data.filePath + ".log")
+	token2CmdDataMap.Delete(uid)
 }
