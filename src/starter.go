@@ -2,6 +2,7 @@ package main
 
 import (
 	"clam-server/config"
+	"clam-server/cors"
 	"clam-server/jwt"
 	"clam-server/serverlogger"
 	"clam-server/service/logdecode"
@@ -43,6 +44,7 @@ func initServerComponents() {
 func initGinComponents(r *gin.Engine) {
 	r.Use(gin.Recovery())
 	r.Use(serverlogger.LoggerHandler())
+	r.Use(cors.Cors())
 	r.Use(jwts.JwtHandler())
 }
 
