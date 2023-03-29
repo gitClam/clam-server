@@ -1,1 +1,1 @@
-ipconfig
+python /home/TXS/decode.py 
