@@ -7,14 +7,16 @@ import (
 	"clam-server/utils/fileio"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"os/exec"
 	"sync"
 )
 
 type cmdData struct {
-	cmd *exec.Cmd
-	out *bytes.Buffer
-	err *bytes.Buffer
+	cmd      *exec.Cmd
+	out      *bytes.Buffer
+	err      *bytes.Buffer
+	filePath string
 }
 
 const scriptsPath = "../scripts/decode.sh"
@@ -57,7 +59,7 @@ func logDecode(c *gin.Context) {
 		})
 		return
 	}
-	err = fileio.WriteFile(genTemporaryFilePath(uid), xLogHandler.Filename, xLog)
+	filePath, err := fileio.WriteFile(genTemporaryFilePath(uid), xLogHandler.Filename, xLog)
 	if err != nil {
 		c.JSON(http.StatusProxyAuthRequired, gin.H{
 			"message": err,
@@ -71,7 +73,7 @@ func logDecode(c *gin.Context) {
 		})
 		return
 	}
-	d := cmd.GenCommand(string(scripts))
+	d := cmd.GenCommand(string(scripts) + filePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err.Error(),
@@ -88,7 +90,7 @@ func logDecode(c *gin.Context) {
 		})
 		return
 	}
-	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr})
+	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr, filePath})
 	c.JSON(http.StatusOK, gin.H{
 		"message": "成功，请尝试取走文件",
 	})
@@ -108,8 +110,19 @@ func getFileRes(c *gin.Context) {
 		return
 	}
 	data := d.(cmdData)
-	c.JSON(http.StatusOK, gin.H{
-		"message": cmd.ConvertByte2String(data.out.Bytes(), cmd.GB18030),
-		"err":     cmd.ConvertByte2String(data.err.Bytes(), cmd.GB18030),
-	})
+	if data.out != nil || data.err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": cmd.ConvertByte2String(data.out.Bytes(), cmd.GB18030),
+			"err":     cmd.ConvertByte2String(data.err.Bytes(), cmd.GB18030),
+		})
+		return
+	}
+	_, err := os.Stat(data.filePath + ".log")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	c.File(data.filePath + ".log")
 }

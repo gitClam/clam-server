@@ -26,14 +26,15 @@ func ReadFile(path string) ([]byte, error) {
 }
 
 // WriteFile 保存文件（没有就创建，删除并覆盖）
-func WriteFile(path string, fileName string, file multipart.File) (err error) {
+func WriteFile(path string, fileName string, file multipart.File) (filepath string, err error) {
+	filepath = path + "/" + fileName
 	err = os.MkdirAll(path, 0777)
 	if err != nil {
-		return err
+		return "", err
 	}
-	out, err := os.OpenFile(path+"/"+fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	out, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer func(out *os.File) {
 		err1 := out.Close()
@@ -44,9 +45,9 @@ func WriteFile(path string, fileName string, file multipart.File) (err error) {
 	}(out)
 	_, err = io.Copy(out, file)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return filepath, nil
 }
 
 func ConvertToUtf8(in string) string {
