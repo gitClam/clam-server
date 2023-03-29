@@ -26,35 +26,43 @@ var (
 	lock sync.Mutex
 )
 
+const (
+	authorization = "Authorization"
+)
+
 func Serve(ctx *gin.Context) bool {
 	ConfigJWT()
+	t := ctx.GetHeader(authorization)
 	pass, err := jwts.CheckJWT(ctx)
+	// 只有token为空的时候才会是这种情况
 	if pass && err != nil {
-		_, err = GenerateToken()
+		token := GenerateToken()
+		t, err = TokenToString(token)
+		ctx.Set(jwts.Config.ContextKey, token)
 	}
 	if err != nil {
 		jwts.Config.ErrorHandler(ctx, err.Error())
 		return false
 	}
+	ctx.Header(authorization, t)
 	return true
 }
 
 // ParseToken 解析token的信息为当前用户
 func ParseToken(ctx *gin.Context) (string, bool) {
-	mapClaims := (jwts.Get(ctx).Claims).(jwt.MapClaims)
-
-	uid, ok := mapClaims["uuid"].(string)
-	if !ok {
-		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
-			"message": "ParseToken err",
-		})
-		return "", false
+	claims, ok := (jwts.Get(ctx).Claims).(Claims)
+	if ok {
+		return claims.UUID, true
 	}
-	return uid, true
+	mapClaims, ok := (jwts.Get(ctx).Claims).(jwt.MapClaims)
+	if ok {
+		return mapClaims["uuid"].(string), true
+	}
+	return "", false
 }
 
 func FromAuthHeader(ctx *gin.Context) (string, error) {
-	authHeader := ctx.GetHeader("Authorization")
+	authHeader := ctx.GetHeader(authorization)
 	if authHeader == "" {
 		return "", nil // No error, just no token
 	}
@@ -93,7 +101,7 @@ func (m *Jwt) CheckJWT(ctx *gin.Context) (bool, error) {
 		if m.Config.CredentialsOptional {
 			return true, fmt.Errorf("Error: No credentials found (CredentialsOptional=true)")
 		}
-		return false, fmt.Errorf("Error: No credentials found (CredentialsOptional=false)")
+		return true, fmt.Errorf("Error: No credentials found (CredentialsOptional=false)")
 	}
 
 	parsedToken, err := jwt.Parse(token, m.Config.ValidationKeyGetter)
@@ -155,7 +163,7 @@ func ConfigJWT() {
 		// 验证未通过错误处理方式
 		ErrorHandler: func(ctx *gin.Context, errMsg string) {
 			ctx.JSON(http.StatusMethodNotAllowed, gin.H{
-				"message": "errMsg",
+				"message": errMsg,
 			})
 		},
 		// 指定func用于提取请求中的token
@@ -168,12 +176,12 @@ func ConfigJWT() {
 }
 
 type Claims struct {
-	uuid string `json:"name"`
+	UUID string `json:"uuid"`
 	jwt.StandardClaims
 }
 
 // GenerateToken 在登录成功的时候生成token
-func GenerateToken() (string, error) {
+func GenerateToken() *jwt.Token {
 
 	expireTime := time.Now().Add(time.Duration(config.GetConfig().Jwt.JwtTimeout) * time.Second)
 
@@ -185,9 +193,11 @@ func GenerateToken() (string, error) {
 		},
 	}
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	token, err := tokenClaims.SignedString([]byte(config.GetConfig().Jwt.Secret))
-	return token, err
+	return tokenClaims
+}
+func TokenToString(t *jwt.Token) (string, error) {
+	token, err := t.SignedString([]byte(config.GetConfig().Jwt.Secret))
+	return "JWT " + token, err
 }
 
 type Config struct {

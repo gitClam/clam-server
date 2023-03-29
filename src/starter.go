@@ -4,6 +4,7 @@ import (
 	"clam-server/config"
 	"clam-server/jwt"
 	"clam-server/serverlogger"
+	"clam-server/service/logdecode"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"log"
@@ -46,7 +47,7 @@ func initGinComponents(r *gin.Engine) {
 }
 
 func initRouter(r *gin.Engine) {
-
+	logdecode.Router(r)
 }
 
 func serverHeart(r *gin.Engine) {

@@ -2,7 +2,7 @@ package serverlogger
 
 import (
 	"clam-server/config"
-	"clam-server/utils/io"
+	"clam-server/utils/fileio"
 	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -16,7 +16,7 @@ func Init() {
 	log.Println("init serverLogger starting ...")
 	zapDirector := config.GetConfig().Zap.Director
 	// 判断是否有文件夹
-	if !io.CheckDirExists(zapDirector) {
+	if !fileio.CheckDirExists(zapDirector) {
 		log.Printf("create directory %s\n", zapDirector)
 		if err := os.Mkdir(zapDirector, os.ModePerm); err != nil {
 			log.Printf("create directory fail %s\n", err)
