@@ -110,13 +110,13 @@ func getFileRes(c *gin.Context) {
 		return
 	}
 	data := d.(cmdData)
-	if (data.out != nil && data.out.String() == "") || (data.err == nil && data.err.String() == "") {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": cmd.ConvertByte2String(data.out.Bytes(), cmd.GB18030),
-			"err":     cmd.ConvertByte2String(data.err.Bytes(), cmd.GB18030),
-		})
-		return
-	}
+	// if (data.out != nil && data.out.String() == "") || (data.err == nil && data.err.String() == "") {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": cmd.ConvertByte2String(data.out.Bytes(), cmd.GB18030),
+	// 		"err":     cmd.ConvertByte2String(data.err.Bytes(), cmd.GB18030),
+	// 	})
+	// 	return
+	// }
 	_, err := os.Stat(data.filePath + ".log")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
