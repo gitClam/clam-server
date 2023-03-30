@@ -4,31 +4,39 @@ import (
 	"bytes"
 	"clam-server/config"
 	"clam-server/jwt"
+	"clam-server/serverlogger"
 	"clam-server/utils/cmd"
 	"clam-server/utils/fileio"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 type cmdData struct {
-	cmd      *exec.Cmd
-	out      *bytes.Buffer
-	err      *bytes.Buffer
-	filePath string
+	cmd        *exec.Cmd
+	out        *bytes.Buffer
+	err        *bytes.Buffer
+	filePath   string
+	createTime time.Time
 }
 
-const scriptsPath = "../scripts/decode.sh"
-const temporaryFilePath = "../resources/"
-
-var token2CmdDataMap sync.Map
+var (
+	temporaryFilePath = config.GetConfig().Decoder.TemporaryFilePath
+	scriptsPath       = config.GetConfig().Decoder.ScriptsPath
+	deleteFilePeriod  = config.GetConfig().Decoder.DeleteFilePeriod
+	fileTimeOut       = config.GetConfig().Decoder.FileTimeOut
+	token2CmdDataMap  sync.Map
+)
 
 func Router(r *gin.Engine) {
 	r.POST("/util/log-decode", logDecode)
 	r.GET("/util/log-decode/get-res", getFileRes)
+	go deleteTemporaryFile()
 }
 
 func logDecode(c *gin.Context) {
@@ -92,7 +100,7 @@ func logDecode(c *gin.Context) {
 		})
 		return
 	}
-	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr, filePath})
+	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr, filePath, time.Now()})
 	token, _ := c.Get(config.GetConfig().Jwt.DefaultContextKey)
 	jwtStr, _ := jwts.TokenToString(token.(*jwt.Token))
 	c.JSON(http.StatusOK, gin.H{
@@ -131,4 +139,24 @@ func getFileRes(c *gin.Context) {
 	}
 	c.File(data.filePath + ".log")
 	token2CmdDataMap.Delete(uid)
+}
+
+func deleteTemporaryFile() {
+	for {
+		serverlogger.Warn("删除文件任务开始执行")
+		now := time.Now()
+		token2CmdDataMap.Range(func(key any, value any) bool {
+			data := value.(cmdData)
+			if data.createTime.Add(time.Duration(fileTimeOut) * time.Minute).Before(now) {
+				err := os.RemoveAll(genTemporaryFilePath(key.(string)))
+				if err != nil {
+					serverlogger.Warn("删除文件失败", zap.Error(err))
+				}
+			}
+			return true
+		})
+		serverlogger.Warn("删除文件任务执行结束")
+		t := time.NewTimer(time.Duration(deleteFilePeriod) * time.Hour)
+		<-t.C
+	}
 }

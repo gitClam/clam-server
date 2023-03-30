@@ -21,3 +21,9 @@ jwt:
   jwt-timeout: 6048000 #second
   secret: xxx-Secret #加密方式
   default-context-key: "clam-house"
+
+decoder:
+  temporary_file_path: '../resources/' # 临时文件存放位置
+  scripts_path: '../scripts/decode.sh' # 脚本路径
+  delete_file_period: 24 # 删除临时文件间隔（小时）
+  file_timeout: 30 # 文件超时时间 （分钟）
