@@ -94,9 +94,10 @@ func logDecode(c *gin.Context) {
 	}
 	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr, filePath})
 	token, _ := c.Get(config.GetConfig().Jwt.DefaultContextKey)
+	jwtStr, _ := jwts.TokenToString(token.(*jwt.Token))
 	c.JSON(http.StatusOK, gin.H{
 		"message": "成功，请尝试取走文件",
-		"jwt":     jwts.TokenToString(token.(*jwt.Token)),
+		"jwt":     jwtStr,
 	})
 }
 
