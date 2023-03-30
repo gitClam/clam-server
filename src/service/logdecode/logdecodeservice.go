@@ -2,9 +2,11 @@ package logdecode
 
 import (
 	"bytes"
+	"clam-server/config"
 	"clam-server/jwt"
 	"clam-server/utils/cmd"
 	"clam-server/utils/fileio"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -91,8 +93,10 @@ func logDecode(c *gin.Context) {
 		return
 	}
 	token2CmdDataMap.Store(uid, cmdData{d, &stdout, &stderr, filePath})
+	token, _ := c.Get(config.GetConfig().Jwt.DefaultContextKey)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "成功，请尝试取走文件",
+		"jwt":     jwts.TokenToString(token.(*jwt.Token)),
 	})
 }
 
