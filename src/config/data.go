@@ -1,9 +1,10 @@
 package config
 
 type config struct {
-	System system `mapstructure:"system" yaml:"system"`
-	Zap    zap    `mapstructure:"zap" yaml:"zap"`
-	Jwt    jwt    `mapstructure:"jwt" yaml:"jwt"`
+	System  system  `mapstructure:"system" yaml:"system"`
+	Zap     zap     `mapstructure:"zap" yaml:"zap"`
+	Jwt     jwt     `mapstructure:"jwt" yaml:"jwt"`
+	Decoder decoder `mapstructure:"decoder" yaml:"decoder"`
 }
 
 type system struct {
@@ -31,4 +32,11 @@ type jwt struct {
 	JwtTimeout        int    `mapstructure:"jwt-timeout" yaml:"jwt-timeout"` // second
 	Secret            string `mapstructure:"secret" yaml:"secret"`           // 加密方式
 	DefaultContextKey string `mapstructure:"default-context-key" yaml:"default-context-key"`
+}
+
+type decoder struct {
+	TemporaryFilePath string `mapstructure:"temporary_file_path" yaml:"temporary_file_path"` // 临时文件存放位置
+	ScriptsPath       string `mapstructure:"scripts_path" yaml:"scripts_path"`               // 脚本路径
+	DeleteFilePeriod  int    `mapstructure:"delete_file_period" yaml:"delete_file_period"`   // 删除临时文件间隔（小时）
+	FileTimeOut       int    `mapstructure:"file_timeout" yaml:"file_timeout"`               // 文件超时时间 （分钟）
 }
