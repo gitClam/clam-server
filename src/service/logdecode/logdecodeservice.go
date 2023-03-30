@@ -26,11 +26,7 @@ type cmdData struct {
 }
 
 var (
-	temporaryFilePath = config.GetConfig().Decoder.TemporaryFilePath
-	scriptsPath       = config.GetConfig().Decoder.ScriptsPath
-	deleteFilePeriod  = config.GetConfig().Decoder.DeleteFilePeriod
-	fileTimeOut       = config.GetConfig().Decoder.FileTimeOut
-	token2CmdDataMap  sync.Map
+	token2CmdDataMap sync.Map
 )
 
 func Router(r *gin.Engine) {
@@ -76,7 +72,7 @@ func logDecode(c *gin.Context) {
 		})
 		return
 	}
-	scripts, err := fileio.ReadFile(scriptsPath)
+	scripts, err := fileio.ReadFile(config.GetConfig().Decoder.ScriptsPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -110,7 +106,7 @@ func logDecode(c *gin.Context) {
 }
 
 func genTemporaryFilePath(token string) string {
-	return temporaryFilePath + token
+	return config.GetConfig().Decoder.TemporaryFilePath + token
 }
 
 func getFileRes(c *gin.Context) {
@@ -145,18 +141,29 @@ func deleteTemporaryFile() {
 	for {
 		serverlogger.Warn("删除文件任务开始执行")
 		now := time.Now()
-		token2CmdDataMap.Range(func(key any, value any) bool {
-			data := value.(cmdData)
-			if data.createTime.Add(time.Duration(fileTimeOut) * time.Minute).Before(now) {
-				err := os.RemoveAll(genTemporaryFilePath(key.(string)))
+		dirs, err := os.ReadDir(config.GetConfig().Decoder.TemporaryFilePath)
+		if err != nil {
+			serverlogger.Warn("删除文件失败", zap.Error(err))
+		}
+		for _, entry := range dirs {
+			data, ok := token2CmdDataMap.Load(entry.Name())
+			if !ok {
+				err := os.RemoveAll(genTemporaryFilePath(entry.Name()))
 				if err != nil {
 					serverlogger.Warn("删除文件失败", zap.Error(err))
 				}
+			} else {
+				if data.(cmdData).createTime.Add(time.Duration(config.GetConfig().Decoder.FileTimeOut) * time.Minute).Before(now) {
+					err := os.RemoveAll(genTemporaryFilePath(entry.Name()))
+					if err != nil {
+						serverlogger.Warn("删除文件失败", zap.Error(err))
+					}
+					token2CmdDataMap.Delete(entry.Name())
+				}
 			}
-			return true
-		})
+		}
 		serverlogger.Warn("删除文件任务执行结束")
-		t := time.NewTimer(time.Duration(deleteFilePeriod) * time.Hour)
+		t := time.NewTimer(time.Duration(config.GetConfig().Decoder.DeleteFilePeriod) * time.Hour)
 		<-t.C
 	}
 }
