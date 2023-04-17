@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 func main() {
@@ -24,12 +26,12 @@ func start() {
 	initGinComponents(r)
 	initRouter(r)
 	serverHeart(r)
+	writePid()
 	err := r.Run(":" + config.GetConfig().System.Host)
 	if err != nil {
 		serverlogger.Warn("start clam-server fail", zap.String("err", err.Error()))
 		return
 	}
-	serverlogger.Warn("clam-server started ...")
 }
 
 func initServerBase() {
@@ -58,4 +60,15 @@ func serverHeart(r *gin.Engine) {
 			"message": "pong",
 		})
 	})
+}
+
+func writePid() {
+	f, err := os.Create("../pid")
+	if err != nil {
+		return
+	}
+	_, err = f.Write([]byte(strconv.Itoa(os.Getpid())))
+	if err != nil {
+		return
+	}
 }
