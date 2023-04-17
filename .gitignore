@@ -101,3 +101,5 @@ gradlew.bat
 pkg/
 
 log/
+
+pid

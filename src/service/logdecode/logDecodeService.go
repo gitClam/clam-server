@@ -2,8 +2,8 @@ package logdecode
 
 import (
 	"bytes"
+	"clam-server/component/jwt"
 	"clam-server/config"
-	"clam-server/jwt"
 	"clam-server/serverlogger"
 	"clam-server/utils/cmd"
 	"clam-server/utils/fileio"
@@ -30,8 +30,15 @@ var (
 )
 
 func Router(r *gin.Engine) {
+	r.LoadHTMLFiles("../../web/index.html")
 	r.POST("/util/log-decode", logDecode)
 	r.GET("/util/log-decode/get-res", getFileRes)
+	r.GET("/main", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Center",
+		})
+	})
+	r.Static("./web", "../../web")
 	go deleteTemporaryFile()
 }
 

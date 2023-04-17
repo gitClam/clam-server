@@ -1,9 +1,9 @@
 package main
 
 import (
+	"clam-server/component/cors"
+	"clam-server/component/jwt"
 	"clam-server/config"
-	"clam-server/cors"
-	"clam-server/jwt"
 	"clam-server/serverlogger"
 	"clam-server/service/logdecode"
 	"github.com/gin-gonic/gin"
