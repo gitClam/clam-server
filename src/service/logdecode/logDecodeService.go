@@ -2,6 +2,7 @@ package logdecode
 
 import (
 	"bytes"
+	"clam-server/component/event"
 	"clam-server/component/jwt"
 	"clam-server/config"
 	"clam-server/serverlogger"
@@ -42,7 +43,15 @@ func Router(r *gin.Engine) {
 	go deleteTemporaryFile()
 }
 
+type a struct {
+	event.Event
+}
+type ah struct {
+	event.Handler
+}
+
 func logDecode(c *gin.Context) {
+	event.Dispatcher().AddListener(a{}, ah{})
 	uid, _ := jwts.ParseToken(c)
 	_, ok := token2CmdDataMap.Load(uid)
 	// 正在执行

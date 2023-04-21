@@ -1,6 +1,8 @@
 package jwts
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func JwtHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {
